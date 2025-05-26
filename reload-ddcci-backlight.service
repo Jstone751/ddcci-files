@@ -1,0 +1,23 @@
+[Unit]
+Description=Reload ddcci_backlight after I2C devices are ready
+After=systemd-udev-settle.service
+Wants=systemd-udev-settle.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash -c '\
+  echo "Waiting for /sys/bus/i2c/devices/4-0037..."; \
+  for i in {1..10}; do \
+    if [ -e /sys/bus/i2c/devices/4-0037 ]; then \
+      echo "I2C device found!"; \
+      break; \
+    fi; \
+    sleep 1; \
+  done; \
+  echo "Reloading ddcci_backlight..."; \
+  modprobe -r ddcci_backlight && modprobe ddcci_backlight \
+'
+
+[Install]
+WantedBy=multi-user.target
+
